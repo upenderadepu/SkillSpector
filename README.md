@@ -37,7 +37,7 @@ git clone https://github.com/NVIDIA/skillspector.git
 cd skillspector
 
 # Create and activate virtual environment
-uv venv .venv --python 3.13 source .venv/bin/activate
+uv venv .venv && source .venv/bin/activate
 # or: python3 -m venv .venv && source .venv/bin/activate
 
 # Install for production use
