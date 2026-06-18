@@ -64,6 +64,16 @@ class MetaAnalyzerFinding(BaseModel):
     )
     is_vulnerability: bool = Field(description="Whether this is a true vulnerability")
     confidence: float = Field(ge=0.0, le=1.0, description="Confidence score between 0.0 and 1.0")
+
+    @field_validator("confidence", mode="before")
+    @classmethod
+    def _normalize_confidence(cls, v: object) -> float:
+        """Accept 0-100 scale (e.g. from Ollama) and normalize to [0, 1]."""
+        v = float(v)  # raises TypeError/ValueError for non-numeric inputs
+        if v > 1.0:
+            v = v / 100.0
+        return max(0.0, min(1.0, v))
+
     intent: Literal["malicious", "negligent", "benign"] = Field(
         description="Likely intent behind the finding"
     )

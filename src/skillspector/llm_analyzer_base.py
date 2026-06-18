@@ -33,7 +33,7 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 from langchain_core.messages import BaseMessage
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from skillspector.llm_utils import get_chat_model
 from skillspector.logging_config import get_logger
@@ -67,6 +67,15 @@ class LLMFinding(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0, default=0.5, description="Confidence score")
     explanation: str = Field(default="", description="Why this is a finding (2-3 sentences)")
     remediation: str = Field(default="", description="Actionable steps to fix the issue")
+
+    @field_validator("confidence", mode="before")
+    @classmethod
+    def _normalize_confidence(cls, v: object) -> float:
+        """Accept 0-100 scale (e.g. from Ollama) and normalize to [0, 1]."""
+        v = float(v)  # raises TypeError/ValueError for non-numeric inputs
+        if v > 1.0:
+            v = v / 100.0
+        return max(0.0, min(1.0, v))
 
     def to_finding(self, file: str) -> Finding:
         """Convert to a :class:`Finding` for the graph state."""

@@ -566,14 +566,32 @@ class TestLLMAnalysisResult:
         assert len(result.findings) == 1
         assert result.findings[0].confidence == 0.9
 
+    def test_confidence_100_scale_normalized(self) -> None:
+        """Ollama and some models return confidence on 0-100 scale; must be normalized."""
+        f = LLMFinding(rule_id="X", message="x", severity="LOW", start_line=1, confidence=100)
+        assert f.confidence == pytest.approx(1.0)
+
+    def test_confidence_85_scale_normalized(self) -> None:
+        f = LLMFinding(rule_id="X", message="x", severity="LOW", start_line=1, confidence=85)
+        assert f.confidence == pytest.approx(0.85)
+
+    def test_confidence_negative_clamped_to_zero(self) -> None:
+        f = LLMFinding(rule_id="X", message="x", severity="LOW", start_line=1, confidence=-10)
+        assert f.confidence == pytest.approx(0.0)
+
+    def test_confidence_overlarge_clamped_to_one(self) -> None:
+        """Values > 100 (e.g. 150) are divided then clamped."""
+        f = LLMFinding(rule_id="X", message="x", severity="LOW", start_line=1, confidence=150)
+        assert f.confidence == pytest.approx(1.0)
+
     def test_confidence_validation(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises((ValueError, TypeError)):
             LLMFinding(
                 rule_id="X",
                 message="x",
                 severity="LOW",
                 start_line=1,
-                confidence=1.5,
+                confidence="not-a-number",
             )
 
     def test_severity_validation(self) -> None:
@@ -660,12 +678,31 @@ class TestMetaAnalyzerResult:
         assert len(result.findings) == 1
         assert result.findings[0].confidence == 0.9
 
+    def test_confidence_100_scale_normalized(self) -> None:
+        """Ollama-style 0-100 scale must be normalized to 0-1."""
+        f = MetaAnalyzerFinding(
+            pattern_id="E1", is_vulnerability=True, confidence=100, intent="malicious", impact="high"
+        )
+        assert f.confidence == pytest.approx(1.0)
+
+    def test_confidence_75_scale_normalized(self) -> None:
+        f = MetaAnalyzerFinding(
+            pattern_id="E1", is_vulnerability=True, confidence=75, intent="malicious", impact="high"
+        )
+        assert f.confidence == pytest.approx(0.75)
+
+    def test_confidence_negative_clamped(self) -> None:
+        f = MetaAnalyzerFinding(
+            pattern_id="E1", is_vulnerability=True, confidence=-5, intent="malicious", impact="high"
+        )
+        assert f.confidence == pytest.approx(0.0)
+
     def test_confidence_validation(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises((ValueError, TypeError)):
             MetaAnalyzerFinding(
                 pattern_id="E1",
                 is_vulnerability=True,
-                confidence=1.5,
+                confidence="bad",
                 intent="malicious",
                 impact="high",
             )
