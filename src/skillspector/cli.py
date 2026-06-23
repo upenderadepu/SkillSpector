@@ -192,9 +192,10 @@ def scan(
     Environment variables:
 
         SKILLSPECTOR_PROVIDER  Active LLM provider: openai | anthropic |
-                               nv_build | nv_inference. Defaults to the
-                               NVIDIA path (nv_inference, falling back to
-                               nv_build in OSS builds).
+                               anthropic_proxy | bedrock | nv_build |
+                               nv_inference. Defaults to the NVIDIA path
+                               (nv_inference, falling back to nv_build in
+                               OSS builds).
         SKILLSPECTOR_MODEL     Override the active provider's default
                                model (applies to every analyzer slot).
         SKILLSPECTOR_LOG_LEVEL DEBUG | INFO | WARNING | ERROR (default WARNING).
@@ -203,6 +204,9 @@ def scan(
 
         OPENAI_API_KEY [+ OPENAI_BASE_URL]   for SKILLSPECTOR_PROVIDER=openai
         ANTHROPIC_API_KEY                    for SKILLSPECTOR_PROVIDER=anthropic
+        AWS_PROFILE (optional) + AWS_REGION  for SKILLSPECTOR_PROVIDER=bedrock
+                                             (AWS_PROFILE: standard boto3 credential
+                                             chain when unset; AWS_REGION default: us-west-2)
         NVIDIA_INFERENCE_KEY                 for the NVIDIA providers
     """
     result = None

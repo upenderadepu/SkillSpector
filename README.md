@@ -149,6 +149,7 @@ inference gateways.
 | `openai` | `OPENAI_API_KEY` (+ optional `OPENAI_BASE_URL`) | api.openai.com (or any OpenAI-compatible URL) | `gpt-5.4` |
 | `anthropic` | `ANTHROPIC_API_KEY` | api.anthropic.com | `claude-opus-4-6` |
 | `anthropic_proxy` | `ANTHROPIC_PROXY_API_KEY` + `ANTHROPIC_PROXY_ENDPOINT_URL` | Any Vertex-style raw-predict proxy | `claude-sonnet-4-6` |
+| `bedrock` | `AWS_PROFILE` (optional) + `AWS_REGION` — SigV4 via boto3 | AWS Bedrock Runtime | `us.anthropic.claude-sonnet-4-6-20250915-v1:0` |
 | `nv_build` | `NVIDIA_INFERENCE_KEY` | build.nvidia.com | `deepseek-ai/deepseek-v4-flash` |
 
 ```bash
@@ -167,6 +168,18 @@ export SKILLSPECTOR_PROVIDER=anthropic_proxy
 export ANTHROPIC_PROXY_ENDPOINT_URL=https://my-gateway.example.com/models/claude-sonnet-4-6:streamRawPredict
 export ANTHROPIC_PROXY_API_KEY=your-bearer-token
 export SKILLSPECTOR_MODEL=claude-sonnet-4-6
+skillspector scan ./my-skill/
+
+# AWS Bedrock (Claude via SigV4)
+export SKILLSPECTOR_PROVIDER=bedrock
+# Optional: select an AWS named profile. When unset, the standard
+# boto3 credential chain (env vars, instance metadata, SSO, etc.) resolves.
+# export AWS_PROFILE=my-profile
+export AWS_REGION=us-west-2  # default if unset
+# Default model: us.anthropic.claude-sonnet-4-6-20250915-v1:0
+# Override with any Bedrock model ID, cross-region inference-profile
+# ID, or your own application-inference-profile ARN:
+# export SKILLSPECTOR_MODEL=us.anthropic.claude-opus-4-6-20250915-v1:0
 skillspector scan ./my-skill/
 
 # NVIDIA build.nvidia.com
@@ -404,7 +417,7 @@ Issues (2)
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `SKILLSPECTOR_PROVIDER` | Active LLM provider: `openai`, `anthropic`, or `nv_build`. Each provider has its own bundled `model_registry.yaml` and default model (see the LLM Analysis table above). Defaults to `nv_build`. | Optional |
+| `SKILLSPECTOR_PROVIDER` | Active LLM provider: `openai`, `anthropic`, `anthropic_proxy`, `bedrock`, or `nv_build`. Each provider has its own bundled `model_registry.yaml` and default model (see the LLM Analysis table above). Defaults to `nv_build`. | Optional |
 | `NVIDIA_INFERENCE_KEY` | Credential for the `nv_build` provider (build.nvidia.com). | Required for LLM analysis when `SKILLSPECTOR_PROVIDER=nv_build` |
 | `OPENAI_API_KEY` | Credential for the OpenAI provider (`SKILLSPECTOR_PROVIDER=openai`). Also serves as the tier-2 fallback in the credential waterfall when the active provider returns no credentials. | Required for LLM analysis when `SKILLSPECTOR_PROVIDER=openai` |
 | `OPENAI_BASE_URL` | Override the OpenAI endpoint (e.g. point at Ollama). | Optional |
@@ -412,6 +425,8 @@ Issues (2)
 | `ANTHROPIC_PROXY_ENDPOINT_URL` | Full endpoint URL for the Anthropic proxy provider (Vertex-style raw-predict). | Required when `SKILLSPECTOR_PROVIDER=anthropic_proxy` |
 | `ANTHROPIC_PROXY_API_KEY` | Bearer token for the Anthropic proxy provider. | Required when `SKILLSPECTOR_PROVIDER=anthropic_proxy` |
 | `ANTHROPIC_PROXY_API_VERSION` | `anthropic_version` value sent in the request body (default: `vertex-2023-10-16`). | Optional |
+| `AWS_PROFILE` | Named AWS profile for the Bedrock provider — authenticates via SigV4 through boto3. When unset, the standard boto3 credential chain (env vars, instance metadata, SSO, etc.) resolves. | Optional (used when `SKILLSPECTOR_PROVIDER=bedrock`) |
+| `AWS_REGION` | AWS region for the Bedrock Runtime endpoint. Defaults to `us-west-2`. | Optional (used when `SKILLSPECTOR_PROVIDER=bedrock`) |
 | `SKILLSPECTOR_MODEL` | Override the active provider's default model. See the LLM Analysis table for each provider's default. | Optional |
 | `SKILLSPECTOR_MODEL_REGISTRY` | Override the bundled per-provider YAML registry (`src/skillspector/providers/<provider>/model_registry.yaml`) with a custom path. | Optional |
 | `SKILLSPECTOR_LOG_LEVEL` | Log level: `DEBUG`, `INFO`, `WARNING`, `ERROR` (default: `WARNING`). | Optional |
