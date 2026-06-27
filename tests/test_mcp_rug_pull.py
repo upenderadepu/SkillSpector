@@ -21,7 +21,9 @@ from skillspector.nodes.analyzers.mcp_rug_pull import node
 from skillspector.state import SkillspectorState
 
 
-def _state(manifest: dict | None = None, file_cache: dict[str, str] | None = None) -> SkillspectorState:
+def _state(
+    manifest: dict | None = None, file_cache: dict[str, str] | None = None
+) -> SkillspectorState:
     state: SkillspectorState = {}
     if manifest is not None:
         state["manifest"] = manifest
@@ -32,10 +34,12 @@ def _state(manifest: dict | None = None, file_cache: dict[str, str] | None = Non
 
 def test_rp1_npx_unpinned():
     """RP1 detects npx without @version suffix."""
-    result = node(_state(
-        manifest={"name": "test-skill"},
-        file_cache={"setup.sh": "npx @scope/mcp-server\n"},
-    ))
+    result = node(
+        _state(
+            manifest={"name": "test-skill"},
+            file_cache={"setup.sh": "npx @scope/mcp-server\n"},
+        )
+    )
     rp1 = [f for f in result["findings"] if f.rule_id == "RP1"]
     assert len(rp1) == 1
     assert "npx @scope/mcp-server" in rp1[0].matched_text
@@ -43,20 +47,24 @@ def test_rp1_npx_unpinned():
 
 def test_rp1_npx_pinned_no_finding():
     """RP1 does not fire when npx has @version."""
-    result = node(_state(
-        manifest={"name": "test-skill"},
-        file_cache={"setup.sh": "npx @scope/mcp-server@1.2.3\n"},
-    ))
+    result = node(
+        _state(
+            manifest={"name": "test-skill"},
+            file_cache={"setup.sh": "npx @scope/mcp-server@1.2.3\n"},
+        )
+    )
     rp1 = [f for f in result["findings"] if f.rule_id == "RP1"]
     assert len(rp1) == 0
 
 
 def test_rp1_uvx_unpinned():
     """RP1 detects uvx without ==version."""
-    result = node(_state(
-        manifest={"name": "test-skill"},
-        file_cache={"install.sh": "uvx my-mcp-server\n"},
-    ))
+    result = node(
+        _state(
+            manifest={"name": "test-skill"},
+            file_cache={"install.sh": "uvx my-mcp-server\n"},
+        )
+    )
     rp1 = [f for f in result["findings"] if f.rule_id == "RP1"]
     assert len(rp1) >= 1
     assert any("uvx" in f.matched_text for f in rp1)
@@ -64,46 +72,56 @@ def test_rp1_uvx_unpinned():
 
 def test_rp1_docker_unpinned():
     """RP1 detects docker run without tag."""
-    result = node(_state(
-        manifest={"name": "test-skill"},
-        file_cache={"Dockerfile": "FROM org/mcp-server\n"},
-    ))
+    node(
+        _state(
+            manifest={"name": "test-skill"},
+            file_cache={"Dockerfile": "FROM org/mcp-server\n"},
+        )
+    )
     # RP1 docker pattern matches "docker pull|run|create"
     # FROM in Dockerfile isn't matched by our regex, so update test
-    result2 = node(_state(
-        manifest={"name": "test-skill"},
-        file_cache={"setup.sh": "docker run org/mcp-server\n"},
-    ))
+    result2 = node(
+        _state(
+            manifest={"name": "test-skill"},
+            file_cache={"setup.sh": "docker run org/mcp-server\n"},
+        )
+    )
     rp1 = [f for f in result2["findings"] if f.rule_id == "RP1"]
     assert len(rp1) >= 1
 
 
 def test_rp1_multiple_patterns():
     """Multiple unpinned references produce multiple RP1 findings."""
-    result = node(_state(
-        manifest={"name": "test-skill"},
-        file_cache={
-            "setup.sh": "npx @scope/server-a\nnpx @org/server-b\n",
-        },
-    ))
+    result = node(
+        _state(
+            manifest={"name": "test-skill"},
+            file_cache={
+                "setup.sh": "npx @scope/server-a\nnpx @org/server-b\n",
+            },
+        )
+    )
     rp1 = [f for f in result["findings"] if f.rule_id == "RP1"]
     assert len(rp1) == 2
 
 
 def test_rp3_version_wildcard():
     """RP3 detects wildcard version."""
-    result = node(_state(
-        manifest={"version": "*", "name": "test"},
-    ))
+    result = node(
+        _state(
+            manifest={"version": "*", "name": "test"},
+        )
+    )
     rp3 = [f for f in result["findings"] if f.rule_id == "RP3"]
     assert len(rp3) >= 1
 
 
 def test_rp3_version_ok_no_finding():
     """RP3 does not fire on pinned version."""
-    result = node(_state(
-        manifest={"version": "1.2.3", "name": "test"},
-    ))
+    result = node(
+        _state(
+            manifest={"version": "1.2.3", "name": "test"},
+        )
+    )
     rp3 = [f for f in result["findings"] if f.rule_id == "RP3"]
     assert len(rp3) == 0
 

@@ -61,7 +61,10 @@ _VERSION_PIN_RE = re.compile(r"@[\d.]+\b|==[\d.]+|:[\d.]+|@sha256:")
 # RP2: Manifest-permission pre-staging
 _PERMISSION_EXPANSION_PATTERNS = [
     (r'"permissions?"\s*:\s*\[[^\]]*\]', 0.60),
-    (r"(?:add|grant|request|require)\s+(?:new|additional|extra|more)\s+(?:permissions?|tools?|access)", 0.70),
+    (
+        r"(?:add|grant|request|require)\s+(?:new|additional|extra|more)\s+(?:permissions?|tools?|access)",
+        0.70,
+    ),
 ]
 
 
@@ -121,7 +124,7 @@ def _check_rp1(manifest: dict, file_cache: dict[str, str]) -> list[Finding]:
             line_end = content.find("\n", m.end())
             if line_end == -1:
                 line_end = len(content)
-            line_remainder = content[m.end():line_end]
+            line_remainder = content[m.end() : line_end]
             if _VERSION_PIN_RE.search(full_match + line_remainder):
                 continue
             line_num = _find_line(content, m.start())
@@ -151,7 +154,7 @@ def _check_rp1(manifest: dict, file_cache: dict[str, str]) -> list[Finding]:
             line_end = content.find("\n", m.end())
             if line_end == -1:
                 line_end = len(content)
-            line_remainder = content[m.end():line_end]
+            line_remainder = content[m.end() : line_end]
             if _VERSION_PIN_RE.search(full_match + line_remainder):
                 continue
             line_num = _find_line(content, m.start())
@@ -167,8 +170,7 @@ def _check_rp1(manifest: dict, file_cache: dict[str, str]) -> list[Finding]:
                     tags=list(_TAGS),
                     matched_text=full_match[:200],
                     explanation=(
-                        "uvx/uv tool run commands without ==version create "
-                        "a rug-pull risk."
+                        "uvx/uv tool run commands without ==version create a rug-pull risk."
                     ),
                     remediation="Pin the version: uvx package-name==1.2.3",
                 )
@@ -180,7 +182,7 @@ def _check_rp1(manifest: dict, file_cache: dict[str, str]) -> list[Finding]:
             line_end = content.find("\n", m.end())
             if line_end == -1:
                 line_end = len(content)
-            line_remainder = content[m.end():line_end]
+            line_remainder = content[m.end() : line_end]
             if _VERSION_PIN_RE.search(full_match + line_remainder):
                 continue
             pkg = m.group(1)
@@ -239,8 +241,7 @@ def _check_rp1(manifest: dict, file_cache: dict[str, str]) -> list[Finding]:
             Finding(
                 rule_id="RP1",
                 message=(
-                    f"Manifest references MCP server without version pin: "
-                    f"'{m.group(0).strip()}'."
+                    f"Manifest references MCP server without version pin: '{m.group(0).strip()}'."
                 ),
                 severity="MEDIUM",
                 confidence=0.70,
@@ -463,7 +464,9 @@ def node(state: SkillspectorState) -> AnalyzerNodeResponse:
                 prev_prop = prev_params[name]
                 prop_diffs = []
                 if curr_prop["type"] != prev_prop["type"]:
-                    prop_diffs.append(f"type changed from {prev_prop['type']} to {curr_prop['type']}")
+                    prop_diffs.append(
+                        f"type changed from {prev_prop['type']} to {curr_prop['type']}"
+                    )
                 if curr_prop["default"] != prev_prop["default"]:
                     prop_diffs.append(
                         f"default changed from {prev_prop['default']} to {curr_prop['default']}"
@@ -478,7 +481,9 @@ def node(state: SkillspectorState) -> AnalyzerNodeResponse:
             if added_params:
                 changes.append(f"added: {', '.join(curr_params[p]['name'] for p in added_params)}")
             if removed_params:
-                changes.append(f"removed: {', '.join(prev_params[p]['name'] for p in removed_params)}")
+                changes.append(
+                    f"removed: {', '.join(prev_params[p]['name'] for p in removed_params)}"
+                )
             if changed_params:
                 changes.append(f"modified: {', '.join(changed_params)}")
 

@@ -98,7 +98,6 @@ class TestSeverityFloor:
         result = _fallback_filtered(findings)
         assert len(result) == 0
 
-
     def test_none_severity_treated_as_low(self) -> None:
         """Finding with None severity does not crash — treated as LOW."""
         findings = [_finding(confidence=0.8, severity=None)]

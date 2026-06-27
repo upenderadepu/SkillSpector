@@ -80,9 +80,7 @@ class TestPerSlotModelOverrides:
         # Without any slot override, the provider's resolve_model() runs.
         assert mod.MODEL_CONFIG["default"] == mod._SKILLSPECTOR_DEFAULT_MODEL
 
-    def test_multiple_slots_independently_overridden(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_multiple_slots_independently_overridden(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("SKILLSPECTOR_MODEL_META_ANALYZER", "model-a")
         monkeypatch.setenv("SKILLSPECTOR_MODEL_SEMANTIC_DEVELOPER_INTENT", "model-b")
         mod = _reload_constants()
@@ -118,9 +116,7 @@ class TestModelValidation:
         with caplog.at_level(logging.WARNING, logger="skillspector.constants"):
             mod = _reload_constants()
         default_model = mod._SKILLSPECTOR_DEFAULT_MODEL
-        warnings_for_default = [
-            r for r in caplog.records if default_model in r.message
-        ]
+        warnings_for_default = [r for r in caplog.records if default_model in r.message]
         assert len(warnings_for_default) == 0
 
     def test_strict_validation_raises_on_unknown_model(
@@ -139,17 +135,13 @@ class TestModelValidation:
         mod = _reload_constants()
         assert mod.MODEL_CONFIG["default"] == mod._SKILLSPECTOR_DEFAULT_MODEL
 
-    def test_strict_validation_disabled_by_default(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_strict_validation_disabled_by_default(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("SKILLSPECTOR_MODEL", "nonexistent-model")
         # No SKILLSPECTOR_STRICT_MODEL_VALIDATION set — should warn, not raise.
         mod = _reload_constants()
         assert mod.MODEL_CONFIG["default"] == "nonexistent-model"
 
-    def test_strict_validation_case_insensitive(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_strict_validation_case_insensitive(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("SKILLSPECTOR_MODEL", "nonexistent-model")
         monkeypatch.setenv("SKILLSPECTOR_STRICT_MODEL_VALIDATION", "True")
         with pytest.raises(ValueError, match="Strict model validation enabled"):

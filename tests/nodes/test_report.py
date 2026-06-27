@@ -643,6 +643,7 @@ def test_report_no_baseline_unchanged() -> None:
     assert result["risk_score"] == 50
     assert result["suppressed_findings"] == []
 
+
 def test_report_executable_scripts_multiplier() -> None:
     """1.3x multiplier applied only to findings from executable files."""
     # 2 HIGH findings in run.py = 2 × 25 × 1.3 = 65 (float-based accumulation)
@@ -674,8 +675,14 @@ def test_report_doc_findings_no_multiplier() -> None:
             _finding("P2", "HIGH", file="SKILL.md"),
         ],
         "component_metadata": [
-            {"path": "SKILL.md", "type": "markdown", "lines": 10, "executable": False, "size_bytes": 500},
-            {"path": "run.py", "type": "python", "lines": 5, "executable": True, "size_bytes": 200}
+            {
+                "path": "SKILL.md",
+                "type": "markdown",
+                "lines": 10,
+                "executable": False,
+                "size_bytes": 500,
+            },
+            {"path": "run.py", "type": "python", "lines": 5, "executable": True, "size_bytes": 200},
         ],
         "has_executable_scripts": True,
         "manifest": {},
