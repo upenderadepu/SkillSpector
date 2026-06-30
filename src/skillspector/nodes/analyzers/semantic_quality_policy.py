@@ -27,7 +27,7 @@ import asyncio
 from skillspector.constants import _SKILLSPECTOR_DEFAULT_MODEL
 from skillspector.llm_analyzer_base import LLMAnalyzerBase
 from skillspector.logging_config import get_logger
-from skillspector.state import AnalyzerNodeResponse, SkillspectorState
+from skillspector.state import AnalyzerNodeResponse, SkillspectorState, llm_call_record
 
 ANALYZER_ID = "semantic_quality_policy"
 logger = get_logger(__name__)
@@ -148,9 +148,12 @@ def node(state: SkillspectorState) -> AnalyzerNodeResponse:
         results = asyncio.run(analyzer.arun_batches(batches))
         findings = analyzer.collect_findings(results)
         logger.info("%s: %d findings", ANALYZER_ID, len(findings))
-        return {"findings": findings}
+        return {"findings": findings, "llm_call_log": [llm_call_record(ANALYZER_ID, ok=True)]}
     except ValueError:
         raise
     except Exception as exc:
         logger.warning("%s failed: %s", ANALYZER_ID, exc)
-        return {"findings": []}
+        return {
+            "findings": [],
+            "llm_call_log": [llm_call_record(ANALYZER_ID, ok=False, error=str(exc))],
+        }
