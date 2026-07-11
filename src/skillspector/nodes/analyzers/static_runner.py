@@ -182,7 +182,7 @@ _DOC_PROSE_FILE_TYPES = frozenset({"markdown", "text"})
 
 _SEMANTIC_STRING_DOC_PRONE_RULES = frozenset({"PE3", "RA1", "TM1", "AR2"})
 _EXECUTION_SIGNAL = re.compile(
-    r"(?:\b\w+\s*=|\bos\.(?:environ|getenv|system)\b|\b(?:subprocess|eval|exec)\b|[|>]"
+    r"(?:\b\w+\s*=|\bos\.(?:environ|getenv|system)\b|\bshutil\.rmtree\b|\b(?:subprocess|eval|exec)\b|[|>]"
     r"|\b(?:open|read_text|write_text)\s*\()",
     re.IGNORECASE,
 )
