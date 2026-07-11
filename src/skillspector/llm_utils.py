@@ -36,7 +36,6 @@ from collections.abc import Coroutine
 from typing import Any
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import BaseMessage
 
 from skillspector.model_info import get_max_input_tokens, get_max_output_tokens
 from skillspector.providers import (

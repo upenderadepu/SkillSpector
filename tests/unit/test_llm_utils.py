@@ -223,34 +223,42 @@ def _chat_model_name(llm: object) -> str:
 
 class TestRunAsync:
     """Tests for run_async helper function that handles nested event loops."""
+
     async def _test_async_function(self, value: int, delay: float = 0) -> int:
         """Simple async function for testing."""
         if delay > 0:
             await asyncio.sleep(delay)
         return value * 2
+
     async def _test_async_function_raises(self) -> None:
         """Async function that raises an exception for testing."""
         raise ValueError("Test exception")
+
     def test_run_async_without_running_loop(self) -> None:
         """Test run_async works correctly when there is no running event loop."""
         result = run_async(self._test_async_function(42))
         assert result == 84
+
     def test_run_async_with_running_loop(self) -> None:
         """Test run_async works correctly even when there is already a running event loop.
         This regression test covers the scenario where SkillSpector is invoked from
         environments like Jupyter Notebooks, FastAPI, or LangGraph Studio that already
         have an active event loop.
         """
+
         async def _test_in_running_loop() -> int:
             # Call run_async from within an already running event loop
             return run_async(self._test_async_function(100))
+
         # Use asyncio.run to create a running loop context
         result = asyncio.run(_test_in_running_loop())
         assert result == 200
+
     def test_run_async_propagates_exceptions(self) -> None:
         """Test exceptions from async functions are properly propagated."""
         with pytest.raises(ValueError, match="Test exception"):
             run_async(self._test_async_function_raises())
+
     def test_run_async_with_delay(self) -> None:
         """Test run_async correctly handles async functions with await calls."""
         result = run_async(self._test_async_function(5, delay=0.01))
