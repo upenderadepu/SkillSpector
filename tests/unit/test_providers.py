@@ -30,6 +30,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import SecretStr
 
 import skillspector.providers as providers_module
+import skillspector.providers.anthropic.provider as anthropic_provider_module
 from skillspector.providers import (
     NO_LLM_API_KEY_MESSAGE,
     chat_models,
@@ -307,6 +308,55 @@ class TestAnthropicProvider:
         assert isinstance(llm, ChatAnthropic)
         assert llm.model == "claude-opus-4-6"
         assert llm.max_tokens == 123
+
+    @pytest.mark.parametrize("effort", ["low", "medium", "high", "xhigh", "max"])
+    def test_reasoning_effort_accepted_values(
+        self, monkeypatch: pytest.MonkeyPatch, effort: str
+    ) -> None:
+        captured: dict[str, object] = {}
+
+        def fake_chat_anthropic(**kwargs: object) -> dict[str, object]:
+            captured.update(kwargs)
+            return kwargs
+
+        monkeypatch.setattr(anthropic_provider_module, "ChatAnthropic", fake_chat_anthropic)
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-x")
+        monkeypatch.setenv("SKILLSPECTOR_REASONING_EFFORT", f"  {effort}  ")
+
+        AnthropicProvider().create_chat_model("claude-opus-4-6", max_tokens=123)
+
+        assert captured["effort"] == effort
+
+    @pytest.mark.parametrize("value", [None, "   ", "\t\n"])
+    def test_reasoning_effort_blank_or_unset_omits_effort(
+        self, monkeypatch: pytest.MonkeyPatch, value: str | None
+    ) -> None:
+        captured: dict[str, object] = {}
+
+        def fake_chat_anthropic(**kwargs: object) -> dict[str, object]:
+            captured.update(kwargs)
+            return kwargs
+
+        monkeypatch.setattr(anthropic_provider_module, "ChatAnthropic", fake_chat_anthropic)
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-x")
+        if value is None:
+            monkeypatch.delenv("SKILLSPECTOR_REASONING_EFFORT", raising=False)
+        else:
+            monkeypatch.setenv("SKILLSPECTOR_REASONING_EFFORT", value)
+
+        AnthropicProvider().create_chat_model("claude-opus-4-6", max_tokens=123)
+
+        assert "effort" not in captured
+
+    @pytest.mark.parametrize("value", ["invalid", "HIGH"])
+    def test_reasoning_effort_invalid_value_rejected(
+        self, monkeypatch: pytest.MonkeyPatch, value: str
+    ) -> None:
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-x")
+        monkeypatch.setenv("SKILLSPECTOR_REASONING_EFFORT", value)
+
+        with pytest.raises(ValueError, match="low, medium, high, xhigh, max"):
+            AnthropicProvider().create_chat_model("claude-opus-4-6", max_tokens=123)
 
     def test_create_chat_model_returns_none_without_key(self) -> None:
         # No ANTHROPIC_API_KEY → no client, signalling the caller to fall back.

@@ -27,6 +27,22 @@ from pydantic import SecretStr
 
 logger = logging.getLogger(__name__)
 
+_ANTHROPIC_REASONING_EFFORTS = ("low", "medium", "high", "xhigh", "max")
+
+
+def resolve_anthropic_reasoning_effort() -> str | None:
+    """Resolve the optional reasoning effort accepted by native Anthropic APIs."""
+    reasoning_effort = os.environ.get("SKILLSPECTOR_REASONING_EFFORT", "").strip()
+    if not reasoning_effort:
+        return None
+    if reasoning_effort not in _ANTHROPIC_REASONING_EFFORTS:
+        accepted = ", ".join(_ANTHROPIC_REASONING_EFFORTS)
+        raise ValueError(
+            f"Invalid SKILLSPECTOR_REASONING_EFFORT for Anthropic: {reasoning_effort!r}; "
+            f"expected one of: {accepted}"
+        )
+    return reasoning_effort
+
 
 def validate_base_url(url: str | None) -> None:
     """Warn if *url* is not a well-formed http(s) URL.
