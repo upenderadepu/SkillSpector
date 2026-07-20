@@ -32,7 +32,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from pydantic import SecretStr
 
 from skillspector.providers import registry
-from skillspector.providers.chat_models import resolve_anthropic_reasoning_effort
+from skillspector.providers.chat_models import resolve_reasoning_effort
 
 # Documented for completeness — ChatAnthropic defaults here when base_url=None.
 ANTHROPIC_BASE_URL = "https://api.anthropic.com"
@@ -76,7 +76,7 @@ class AnthropicProvider:
             "timeout": timeout,
             "stop": None,
         }
-        effort = resolve_anthropic_reasoning_effort()
+        effort = resolve_reasoning_effort()
         if effort is not None:
             kwargs["effort"] = effort
         return ChatAnthropic(**kwargs)

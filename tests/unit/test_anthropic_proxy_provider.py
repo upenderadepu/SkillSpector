@@ -91,8 +91,8 @@ class TestAnthropicProxyProviderChatModel:
         assert llm.model == "claude-sonnet-4-6"
         assert llm.max_tokens == 4096
 
-    @pytest.mark.parametrize("effort", ["low", "medium", "high", "xhigh", "max"])
-    def test_reasoning_effort_maps_to_proxy_constructor(
+    @pytest.mark.parametrize("effort", ["provider-specific-value"])
+    def test_reasoning_effort_passthrough(
         self, monkeypatch: pytest.MonkeyPatch, effort: str
     ) -> None:
         captured: dict[str, object] = {}
@@ -133,14 +133,6 @@ class TestAnthropicProxyProviderChatModel:
         AnthropicProxyProvider().create_chat_model("claude-sonnet-4-6", max_tokens=4096)
 
         assert "effort" not in captured
-
-    def test_reasoning_effort_invalid_value_rejected(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setenv("ANTHROPIC_PROXY_API_KEY", "bearer-tok")
-        monkeypatch.setenv("ANTHROPIC_PROXY_ENDPOINT_URL", "https://proxy.example.com/predict")
-        monkeypatch.setenv("SKILLSPECTOR_REASONING_EFFORT", "invalid")
-
-        with pytest.raises(ValueError, match="low, medium, high, xhigh, max"):
-            AnthropicProxyProvider().create_chat_model("claude-sonnet-4-6", max_tokens=4096)
 
 
 class TestAnthropicProxyProviderMetadata:

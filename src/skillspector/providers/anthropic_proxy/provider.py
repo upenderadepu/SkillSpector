@@ -53,7 +53,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from pydantic import SecretStr
 
 from skillspector.providers import registry
-from skillspector.providers.chat_models import resolve_anthropic_reasoning_effort
+from skillspector.providers.chat_models import resolve_reasoning_effort
 
 REGISTRY_PATH = str(Path(__file__).with_name("model_registry.yaml"))
 
@@ -241,7 +241,7 @@ class AnthropicProxyProvider:
             "default_request_timeout": timeout,
             "stop_sequences": None,
         }
-        effort = resolve_anthropic_reasoning_effort()
+        effort = resolve_reasoning_effort()
         if effort is not None:
             kwargs["effort"] = effort
         return _ChatAnthropicProxy(**kwargs)

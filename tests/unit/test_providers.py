@@ -309,8 +309,8 @@ class TestAnthropicProvider:
         assert llm.model == "claude-opus-4-6"
         assert llm.max_tokens == 123
 
-    @pytest.mark.parametrize("effort", ["low", "medium", "high", "xhigh", "max"])
-    def test_reasoning_effort_accepted_values(
+    @pytest.mark.parametrize("effort", ["provider-specific-value"])
+    def test_reasoning_effort_passthrough(
         self, monkeypatch: pytest.MonkeyPatch, effort: str
     ) -> None:
         captured: dict[str, object] = {}
@@ -347,16 +347,6 @@ class TestAnthropicProvider:
         AnthropicProvider().create_chat_model("claude-opus-4-6", max_tokens=123)
 
         assert "effort" not in captured
-
-    @pytest.mark.parametrize("value", ["invalid", "HIGH"])
-    def test_reasoning_effort_invalid_value_rejected(
-        self, monkeypatch: pytest.MonkeyPatch, value: str
-    ) -> None:
-        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-x")
-        monkeypatch.setenv("SKILLSPECTOR_REASONING_EFFORT", value)
-
-        with pytest.raises(ValueError, match="low, medium, high, xhigh, max"):
-            AnthropicProvider().create_chat_model("claude-opus-4-6", max_tokens=123)
 
     def test_create_chat_model_returns_none_without_key(self) -> None:
         # No ANTHROPIC_API_KEY → no client, signalling the caller to fall back.

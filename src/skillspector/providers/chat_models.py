@@ -27,21 +27,11 @@ from pydantic import SecretStr
 
 logger = logging.getLogger(__name__)
 
-_ANTHROPIC_REASONING_EFFORTS = ("low", "medium", "high", "xhigh", "max")
 
-
-def resolve_anthropic_reasoning_effort() -> str | None:
-    """Resolve the optional reasoning effort accepted by native Anthropic APIs."""
+def resolve_reasoning_effort() -> str | None:
+    """Resolve the optional provider- and model-dependent reasoning effort."""
     reasoning_effort = os.environ.get("SKILLSPECTOR_REASONING_EFFORT", "").strip()
-    if not reasoning_effort:
-        return None
-    if reasoning_effort not in _ANTHROPIC_REASONING_EFFORTS:
-        accepted = ", ".join(_ANTHROPIC_REASONING_EFFORTS)
-        raise ValueError(
-            f"Invalid SKILLSPECTOR_REASONING_EFFORT for Anthropic: {reasoning_effort!r}; "
-            f"expected one of: {accepted}"
-        )
-    return reasoning_effort
+    return reasoning_effort or None
 
 
 def validate_base_url(url: str | None) -> None:
@@ -89,7 +79,7 @@ def create_openai_compatible_chat_model(
         "timeout": timeout,
         "default_headers": default_headers,
     }
-    reasoning_effort = os.environ.get("SKILLSPECTOR_REASONING_EFFORT", "").strip()
+    reasoning_effort = resolve_reasoning_effort()
     if reasoning_effort:
         kwargs["reasoning_effort"] = reasoning_effort
     return ChatOpenAI(**kwargs)
